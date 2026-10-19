@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en-SG">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#f6f5f1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Comeback">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<title>Comeback</title>
+<style>
+:root{
+ --bg:#f6f5f1;--card:#fff;--ink:#22302c;--muted:#6b7773;--line:#e7e4dc;
+ --sage:#3f7d6e;--sage2:#e4efea;--amber:#d9a441;--amber2:#fbf0d9;--clay:#c47a62;--clay2:#f7e6df;
+ --gold:#f2c46d;--r:18px;--shadow:0 1px 2px rgba(34,48,44,.05),0 4px 14px rgba(34,48,44,.05)
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-text-size-adjust:100%}
+body{min-height:100vh}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+#app{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 8px) 16px calc(96px + env(safe-area-inset-bottom))}
+header.top{padding:14px 2px 6px}
+.eyebrow{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em}
+h1{font-size:30px;line-height:1.15;margin:2px 0 4px;letter-spacing:-.5px;font-weight:750}
+h2{font-size:19px;margin:22px 2px 8px;letter-spacing:-.2px}
+h3{font-size:16px;margin:0 0 6px}
+p{margin:6px 0}
+.muted{color:var(--muted)}
+.small{font-size:13.5px}
+.motto{font-size:15px;color:var(--muted);margin:2px 0 0}
+.card{background:var(--card);border-radius:var(--r);padding:16px;margin:12px 0;box-shadow:var(--shadow);border:1px solid #efece5}
+.days{display:flex;gap:5px;padding:10px 0 4px}
+.days::-webkit-scrollbar{display:none}
+.day{flex:1 1 0;min-width:0;border:1px solid var(--line);background:#fff;border-radius:14px;padding:6px 0;text-align:center;line-height:1.15}
+.day b{display:block;font-size:17px}
+.day span{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.day.sel{background:var(--ink);border-color:var(--ink);color:#fff}
+.day.sel span{color:#cfd8d5}
+.day i{display:block;width:6px;height:6px;border-radius:3px;margin:3px auto 0;background:transparent}
+.day i.all{background:var(--sage)}.day i.some{background:var(--amber)}
+.banner{display:flex;align-items:center;gap:12px;background:var(--sage2);border-radius:var(--r);padding:12px 14px;margin:12px 0;border:none;width:100%;text-align:left}
+.banner.gold{background:var(--amber2)}
+.banner .ico{font-size:22px}
+.banner b{display:block}
+.habit .row{display:flex;align-items:center;gap:12px}
+.habit .name{font-weight:650;font-size:16.5px;line-height:1.25}
+.habit .meta{font-size:13px;color:var(--muted);margin-top:2px}
+.ring{flex:0 0 52px;width:52px;height:52px;position:relative}
+.ring svg{width:52px;height:52px;transform:rotate(-90deg)}
+.ring .v{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:650;border-radius:999px;padding:3px 9px;margin-top:6px}
+.badge.cb{background:var(--amber2);color:#8a5d10}
+.badge.won{background:var(--sage2);color:var(--sage)}
+.badge.rest{background:#f0eee8;color:var(--muted)}
+.acts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.act{min-height:46px;border-radius:13px;border:1.5px solid var(--line);background:#fbfaf7;font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center;gap:6px;transition:transform .08s,background .15s}
+.act:active{transform:scale(.97)}
+.act .dot{width:10px;height:10px;border-radius:50%}
+.act[data-s=done] .dot{background:var(--sage)}
+.act[data-s=partial] .dot{background:linear-gradient(90deg,var(--amber) 50%,#ead9b5 50%)}
+.act[data-s=missed] .dot{background:var(--clay)}
+.act.on[data-s=done]{background:var(--sage);border-color:var(--sage);color:#fff}
+.act.on[data-s=partial]{background:var(--amber);border-color:var(--amber);color:#fff}
+.act.on[data-s=missed]{background:var(--clay);border-color:var(--clay);color:#fff}
+.act.on .dot{background:#fff}
+.why{margin-top:10px;background:#faf8f4;border-radius:12px;padding:10px 12px;font-size:14px;border:none;width:100%;text-align:left;display:block}
+.why .k{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em;font-weight:650}
+.link{background:none;border:none;color:var(--sage);font-weight:650;padding:6px 0}
+.btn{min-height:48px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-weight:650;font-size:16px;padding:10px 16px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
+.btn.sage{background:var(--sage);border-color:var(--sage);color:#fff}
+.btn.danger{color:#a2483a;border-color:#ebc9bf}
+.btn.block{width:100%;margin-top:10px}
+.btn.ghost{border-color:transparent;background:transparent;color:var(--muted)}
+.rest-list{font-size:14px;color:var(--muted)}
+.rest-list button{display:flex;justify-content:space-between;align-items:center;width:100%;background:none;border:none;padding:10px 2px;border-top:1px solid var(--line);text-align:left}
+.rest-list button:first-child{border-top:none}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:rgba(246,245,241,.92);backdrop-filter:saturate(1.6) blur(16px);-webkit-backdrop-filter:saturate(1.6) blur(16px);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom));z-index:10}
+nav.tabs .in{display:grid;grid-template-columns:repeat(4,1fr);max-width:560px;width:100%}
+.tab{background:none;border:none;padding:6px 0 4px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:11.5px;font-weight:600;color:var(--muted);position:relative}
+.tab svg{width:25px;height:25px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--ink)}
+.tab .pip{position:absolute;top:4px;left:calc(50% + 10px);width:8px;height:8px;border-radius:4px;background:var(--amber)}
+/* sheet */
+.scrim{position:fixed;inset:0;background:rgba(20,28,26,.35);z-index:20;display:flex;align-items:flex-end;justify-content:center;animation:fade .18s}
+.sheet{background:var(--bg);width:100%;max-width:560px;border-radius:24px 24px 0 0;padding:10px 18px calc(18px + env(safe-area-inset-bottom));max-height:92vh;overflow-y:auto;animation:up .22s cubic-bezier(.2,.8,.2,1)}
+.grab{width:40px;height:5px;border-radius:3px;background:#d8d4ca;margin:0 auto 12px}
+.sheet h2{margin:4px 0 2px;font-size:22px}
+@keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;font-size:15px;font-weight:550;min-height:42px}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+label.f{display:block;font-size:14px;font-weight:650;margin:14px 0 6px}
+textarea,input[type=text]{width:100%;border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff;font-size:16px;outline:none;resize:vertical}
+textarea:focus,input[type=text]:focus{border-color:var(--sage)}
+.two{display:grid;grid-template-columns:1fr 2fr;gap:10px;margin-top:16px}
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 4px}
+.stat{background:#faf8f4;border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font-size:22px;letter-spacing:-.3px}
+.stat span{font-size:12px;color:var(--muted)}
+.stat.d b{color:var(--sage)}.stat.p b{color:#b5821f}.stat.m b{color:var(--clay)}
+.bars .b{display:grid;grid-template-columns:110px 1fr 28px;align-items:center;gap:8px;font-size:14px;margin:6px 0}
+.bars .t{height:10px;background:#f0ede6;border-radius:6px;overflow:hidden}
+.bars .t i{display:block;height:100%;background:var(--clay);border-radius:6px;opacity:.85}
+.wk{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;align-items:end;height:92px;margin-top:8px}
+.wk .c{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:11.5px;color:var(--muted);gap:4px}
+.wk .c i{display:block;width:100%;max-width:26px;background:var(--clay);border-radius:6px 6px 3px 3px;opacity:.8;min-height:2px}
+.wk .c .n{font-size:11px;color:var(--ink);font-weight:650}
+.lesson{border-left:3px solid var(--gold);padding:4px 0 4px 12px;margin:12px 0}
+.lesson .h{font-size:12.5px;color:var(--muted)}
+.empty{color:var(--muted);font-size:14.5px;padding:6px 0}
+.grid7{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px;text-align:center;font-size:11px;color:var(--muted)}
+.cell{height:26px;border-radius:8px;background:#f2efe9;display:flex;align-items:center;justify-content:center}
+.cell.done{background:var(--sage)}.cell.partial{background:linear-gradient(90deg,var(--amber) 50%,#efdcb3 50%)}.cell.missed{background:var(--clay)}
+.cell.open{background:#fff;border:1.5px dashed #d6d1c6}.cell.off{background:transparent;color:#c9c4b8}
+.cell.cb{box-shadow:inset 0 0 0 2px var(--gold)}
+.weeknav{display:flex;align-items:center;justify-content:space-between;margin:8px 0}
+.weeknav button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:20px}
+.saved{font-size:12.5px;color:var(--sage);height:18px;margin-top:4px}
+.toggle{display:grid;grid-template-columns:1fr 1fr;background:#ece9e2;border-radius:12px;padding:3px;gap:3px;margin-top:6px}
+.toggle button{border:none;background:transparent;border-radius:10px;min-height:40px;font-weight:600;font-size:14.5px;color:var(--muted)}
+.toggle button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.wd{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px}
+.wd button{min-height:44px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:650;font-size:14px}
+.wd button.on{background:var(--sage);color:#fff;border-color:var(--sage)}
+.stepper{display:flex;align-items:center;gap:14px;margin-top:10px}
+.stepper button{width:46px;height:46px;border-radius:14px;border:1.5px solid var(--line);background:#fff;font-size:22px}
+.stepper b{font-size:22px;min-width:24px;text-align:center}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.hrow:first-child{border-top:none;padding-top:2px}
+.hrow .name{font-weight:620}
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:12px 18px;border-radius:16px;font-size:15px;font-weight:600;z-index:30;box-shadow:0 8px 24px rgba(0,0,0,.18);max-width:90vw;text-align:center;animation:up .25s}
+.toast.gold{background:#8a5d10}
+.pulse{animation:pulse .6s}
+@keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+.foot{font-size:12.5px;color:var(--muted);text-align:center;margin:26px 0 6px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<nav class="tabs" id="tabs"></nav>
+<input type="file" id="importFile" accept="application/json,.json" hidden>
+<script>
+'use strict';
+(function(){
+const SKEY='comeback.v1';
+const REASONS=['Tired','Work ran late','Travel','Unwell','Mood','Forgot','Social/family','Other'];
+const MOTTOS=['A miss is data, not a verdict.','Show up imperfectly. It still counts.','Never miss twice. And if you do, begin again.','Progress, not perfection.','Every miss carries a lesson.'];
+const DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DOW_MON=[1,2,3,4,5,6,0];
+
+/* ---------- dates (local time) ---------- */
+const pad=n=>String(n).padStart(2,'0');
+const key=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const parse=k=>{const a=k.split('-').map(Number);return new Date(a[0],a[1]-1,a[2])};
+const addDays=(k,n)=>{const d=parse(k);d.setDate(d.getDate()+n);return key(d)};
+const dow=k=>parse(k).getDay();
+const todayK=()=>key(new Date());
+const weekStart=k=>addDays(k,-((dow(k)+6)%7));
+const fmt=(k,o)=>parse(k).toLocaleDateString('en-SG',o||{weekday:'short',day:'numeric',month:'short'});
+const minK=(a,b)=>a<b?a:b, maxK=(a,b)=>a>b?a:b;
+
+/* ---------- state ---------- */
+function uid(){return 'h'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)}
+function seed(){
+ const t=todayK();
+ return {v:1,created:t,habits:[
+  {id:uid(),name:'F45 7am (Mon/Wed/Fri)',sched:{type:'days',days:[1,3,5]},archived:false,created:t},
+  {id:uid(),name:'Clean eating (lean protein, low carb, no snacking)',sched:{type:'times',n:5},archived:false,created:t},
+  {id:uid(),name:'Reply to GOGGINS daily quote',sched:{type:'days',days:[0,1,2,3,4,5,6]},archived:false,created:t}
+ ],logs:{},reviews:{}};
+}
+function valid(d){return d&&typeof d==='object'&&Array.isArray(d.habits)&&d.logs&&typeof d.logs==='object'}
+let S;
+try{S=JSON.parse(localStorage.getItem(SKEY)||'null')}catch(e){S=null}
+if(!valid(S)){S=seed();save()}
+if(!S.reviews)S.reviews={};
+function save(){try{localStorage.setItem(SKEY,JSON.stringify(S))}catch(e){toast('Could not save on this device')}}
+
+const ui={tab:'today',date:todayK(),week:weekStart(todayK()),insight:'all'};
+
+/* ---------- habit maths ---------- */
+const wkTxt=(c,n)=>c>=n?n+'/'+n+' ✓':(c%1?c.toFixed(1):c)+'/'+n;
+const val=e=>!e?0:e.s==='done'?1:e.s==='partial'?0.5:0;
+const logsOf=h=>S.logs[h.id]||(S.logs[h.id]={});
+function getLog(h,k){return (S.logs[h.id]||{})[k]}
+function isSched(h,k){return h.sched.type==='days'?h.sched.days.indexOf(dow(k))>=0:true}
+function startOf(h){let s=h.created||todayK();for(const k in (S.logs[h.id]||{}))if(k<s)s=k;return s}
+function schedLabel(h){
+ if(h.sched.type==='times')return h.sched.n+'× a week';
+ const d=h.sched.days.slice().sort((a,b)=>((a+6)%7)-((b+6)%7));
+ if(d.length===7)return 'Daily';
+ if(d.length===5&&d.indexOf(0)<0&&d.indexOf(6)<0)return 'Weekdays';
+ return d.map(x=>DOW[x]).join(' · ');
+}
+function rate30(h){
+ const t=todayK();const s=maxK(addDays(t,-29),startOf(h));
+ if(h.sched.type==='days'){
+  let credit=0,denom=0;
+  for(let k=s;k<=t;k=addDays(k,1)){if(!isSched(h,k))continue;const e=getLog(h,k);if(e){denom++;credit+=val(e)}}
+  return denom?credit/denom:null;
+ }
+ // N times per week: credit per Mon–Sun week is capped at N; expected = N × days/7
+ let D=0,any=false;const wk={};
+ for(let k=s;k<=t;k=addDays(k,1)){D++;const e=getLog(h,k);if(e){any=true;const w=weekStart(k);wk[w]=(wk[w]||0)+val(e)}}
+ if(!any)return null;
+ let credit=0;for(const w in wk)credit+=Math.min(h.sched.n,wk[w]);
+ return Math.min(1,credit/(h.sched.n*D/7));
+}
+function weekCredit(h,ws){let c=0;for(let i=0;i<7;i++)c+=val(getLog(h,addDays(ws,i)));return c}
+// Never miss twice: walk scheduled, logged days in order. A logged miss makes the next logged scheduled day a comeback day.
+function comebacks(h){
+ const L=S.logs[h.id]||{};const ks=Object.keys(L).filter(k=>isSched(h,k)).sort();
+ let prevMiss=false,made=0,chances=0;const days={};
+ for(const k of ks){const e=L[k];if(prevMiss){chances++;days[k]=e.s!=='missed';if(e.s!=='missed')made++}prevMiss=e.s==='missed'}
+ return {made,chances,days};
+}
+function isComebackDay(h,k){
+ if(!isSched(h,k))return false;
+ const L=S.logs[h.id]||{};let prev=null;
+ for(const x in L){if(x<k&&isSched(h,x)&&(!prev||x>prev))prev=x}
+ return !!(prev&&L[prev].s==='missed');
+}
+function active(){return S.habits.filter(h=>!h.archived)}
+
+/* ---------- helpers ---------- */
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pct=r=>r==null?'—':Math.round(r*100)+'%';
+function ring(r){
+ const R=22,C=2*Math.PI*R,v=r==null?0:r;const col=r==null?'#e7e4dc':v>=.8?'#3f7d6e':v>=.5?'#d9a441':'#c47a62';
+ return '<div class="ring" aria-label="30-day completion '+pct(r)+'"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="'+R+'" fill="none" stroke="#efece5" stroke-width="6"/><circle cx="26" cy="26" r="'+R+'" fill="none" stroke="'+col+'" stroke-width="6" stroke-linecap="'+(v>0?'round':'butt')+'" stroke-dasharray="'+(C*v).toFixed(1)+' '+C.toFixed(1)+'"/></svg><div class="v">'+pct(r)+'</div></div>';
+}
+let toastT;
+function toast(msg,gold){
+ document.querySelectorAll('.toast').forEach(n=>n.remove());
+ const d=document.createElement('div');d.className='toast'+(gold?' gold':'');d.textContent=msg;d.setAttribute('role','status');document.body.appendChild(d);
+ clearTimeout(toastT);toastT=setTimeout(()=>d.remove(),2600);
+}
+function mottoFor(k){let h=0;for(const c of k)h=(h*31+c.charCodeAt(0))>>>0;return MOTTOS[h%MOTTOS.length]}
+
+/* ---------- views ---------- */
+const ICONS={
+ today:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/></svg>',
+ week:'<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+ insights:'<svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>',
+ habits:'<svg viewBox="0 0 24 24"><path d="M8 6h12M8 12h12M8 18h12"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg>'
+};
+function renderTabs(){
+ const sun=dow(todayK())===0;
+ const tabs=[['today','Today'],['week','Week'],['insights','Insights'],['habits','Habits']];
+ document.getElementById('tabs').innerHTML='<div class="in">'+tabs.map(t=>'<button class="tab'+(ui.tab===t[0]?' on':'')+'" data-act="tab" data-v="'+t[0]+'" aria-label="'+t[1]+'">'+ICONS[t[0]]+t[1]+(t[0]==='week'&&sun&&!S.reviews[weekStart(todayK())]?'<span class="pip"></span>':'')+'</button>').join('')+'</div>';
+}
+function render(){
+ renderTabs();
+ const app=document.getElementById('app');
+ app.innerHTML=ui.tab==='today'?vToday():ui.tab==='week'?vWeek():ui.tab==='insights'?vInsights():vHabits();
+}
+
+function vToday(){
+ const t=todayK(),k=ui.date;const hs=active();
+ let days='';
+ for(let i=7;i>=0;i--){const d=addDays(t,-i);const sch=hs.filter(h=>isSched(h,d)&&h.sched.type==='days');const logged=hs.filter(h=>getLog(h,d)).length;
+  const dot=logged===0?'':(logged>=hs.length?'all':'some');
+  days+='<button class="day'+(d===k?' sel':'')+'" data-act="date" data-v="'+d+'"><span>'+(i===0?'Today':DOW[dow(d)])+'</span><b>'+parse(d).getDate()+'</b><i class="'+dot+'"></i></button>'}
+ const sched=hs.filter(h=>isSched(h,k)&&(h.sched.type==='days'||weekCredit(h,weekStart(k))<h.sched.n||getLog(h,k)));
+ const rest=hs.filter(h=>sched.indexOf(h)<0);
+ let html='<header class="top"><div class="eyebrow">'+(k===t?'Today · ':'Looking back · ')+esc(fmt(k,{weekday:'long',day:'numeric',month:'long'}))+'</div><h1>'+(k===t?'Show up, gently.':'Fill in '+esc(fmt(k,{weekday:'long'})))+'</h1><p class="motto">'+esc(mottoFor(k))+'</p></header>';
+ html+='<div class="days" role="tablist" aria-label="Pick a day (past 7 days)">'+days+'</div>';
+ if(dow(t)===0&&k===t)html+='<button class="banner gold" data-act="tab" data-v="week"><span class="ico">🌿</span><span><b>It\'s Sunday: weekly review</b><span class="small muted">Two minutes to look back and pick one small adjustment.</span></span></button>';
+ if(!hs.length)html+='<div class="card"><p>No habits yet.</p><button class="btn primary block" data-act="newHabit">Add a habit</button></div>';
+ for(const h of sched)html+=habitCard(h,k);
+ if(rest.length){
+  html+='<h2>Not on the plan today</h2><div class="card rest-list">'+rest.map(h=>{const e=getLog(h,k);
+   const why=h.sched.type==='times'?('Weekly target met ('+wkTxt(weekCredit(h,weekStart(k)),h.sched.n)+')'):'Rest day';
+   return '<button data-act="logAnyway" data-h="'+h.id+'"><span><span style="color:var(--ink);font-weight:600">'+esc(h.name)+'</span><br>'+why+'</span><span class="link">'+(e?esc(e.s):'Log anyway')+'</span></button>'}).join('')+'</div>';
+ }
+ html+='<p class="foot">Your data stays on this phone only.</p>';
+ return html;
+}
+function habitCard(h,k){
+ const e=getLog(h,k);const r=rate30(h);const cb=isComebackDay(h,k);
+ let meta=schedLabel(h);
+ if(h.sched.type==='times'){const c=weekCredit(h,weekStart(k));meta+=' · this week '+wkTxt(c,h.sched.n)}
+ let badge='';
+ if(cb&&e&&e.s!=='missed')badge='<span class="badge won">✓ Comeback made</span>';
+ else if(cb)badge='<span class="badge cb">↺ Comeback day</span>';
+ const btn=(s,l)=>'<button class="act'+(e&&e.s===s?' on':'')+'" data-act="log" data-h="'+h.id+'" data-s="'+s+'" aria-pressed="'+(e&&e.s===s)+'"><span class="dot"></span>'+l+'</button>';
+ let why='';
+ if(e&&e.s!=='done'){
+  if((e.reasons&&e.reasons.length)||e.note||e.next){
+   why='<button class="why" data-act="reflect" data-h="'+h.id+'">'+(e.reasons&&e.reasons.length?'<div><span class="k">In the way</span> '+esc(e.reasons.join(', '))+'</div>':'')+(e.note?'<div class="muted">'+esc(e.note)+'</div>':'')+(e.next?'<div><span class="k">Next time</span> '+esc(e.next)+'</div>':'')+'</button>';
+  }else why='<button class="link" data-act="reflect" data-h="'+h.id+'">+ Add what got in the way</button>';
+ }
+ return '<div class="card habit" id="c-'+h.id+'"><div class="row">'+ring(r)+'<div style="flex:1;min-width:0"><div class="name">'+esc(h.name)+'</div><div class="meta">'+esc(meta)+' · 30-day rate</div>'+badge+'</div></div><div class="acts">'+btn('done','Done')+btn('partial','Partial')+btn('missed','Missed')+'</div>'+why+'</div>';
+}
+
+function rangeCounts(h,from,to){
+ const L=S.logs[h.id]||{};const c={done:0,partial:0,missed:0,reasons:{},wd:[0,0,0,0,0,0,0],lessons:[]};
+ for(const k in L){if(k<from||k>to)continue;const e=L[k];c[e.s]++;
+  if(e.s!=='done'){(e.reasons||[]).forEach(x=>c.reasons[x]=(c.reasons[x]||0)+1);if(e.s==='missed')c.wd[dow(k)]++}
+  if(e.next)c.lessons.push({k,h,text:e.next,note:e.note,s:e.s})}
+ return c;
+}
+function bars(reasons,limit){
+ const arr=Object.entries(reasons).sort((a,b)=>b[1]-a[1]).slice(0,limit||8);
+ if(!arr.length)return '<div class="empty">No reasons noted yet. They\'ll show up here as you log.</div>';
+ const max=arr[0][1];
+ return '<div class="bars">'+arr.map(a=>'<div class="b"><span>'+esc(a[0])+'</span><span class="t"><i style="width:'+(a[1]/max*100)+'%"></i></span><b>'+a[1]+'</b></div>').join('')+'</div>';
+}
+function vInsights(){
+ const t=todayK();const from=ui.insight==='30'?addDays(t,-29):'0000-00-00';
+ const hs=S.habits.filter(h=>!h.archived||Object.keys(S.logs[h.id]||{}).length);
+ let html='<header class="top"><div class="eyebrow">Insights</div><h1>What the misses say</h1><p class="motto">Patterns, not judgements. Look for the one thing worth changing.</p></header>';
+ html+='<div class="toggle"><button class="'+(ui.insight==='all'?'on':'')+'" data-act="insight" data-v="all">All time</button><button class="'+(ui.insight==='30'?'on':'')+'" data-act="insight" data-v="30">Last 30 days</button></div>';
+ let lessons=[];
+ for(const h of hs){
+  const c=rangeCounts(h,from,t);const cb=comebacks(h);lessons=lessons.concat(c.lessons);
+  const maxw=Math.max(1,...c.wd);
+  html+='<div class="card"><div class="habit"><div class="row">'+ring(rate30(h))+'<div style="flex:1;min-width:0"><div class="name">'+esc(h.name)+'</div><div class="meta">'+esc(schedLabel(h))+(h.archived?' · archived':'')+'</div></div></div></div>';
+  html+='<div class="stats"><div class="stat d"><b>'+c.done+'</b><span>Done</span></div><div class="stat p"><b>'+c.partial+'</b><span>Partial</span></div><div class="stat m"><b>'+c.missed+'</b><span>Missed</span></div></div>';
+  html+='<p class="small" style="margin:10px 0 2px">↺ <b>Comebacks: '+cb.made+(cb.chances?' of '+cb.chances:'')+'</b> <span class="muted">'+(cb.chances?(cb.made===cb.chances?'You came back every time.':'Each one is a fresh start.'):'After a miss, the next day is your comeback day.')+'</span></p>';
+  html+='<h3 style="margin-top:14px">What got in the way</h3>'+bars(c.reasons,5);
+  html+='<h3 style="margin-top:14px">Misses by weekday</h3><div class="wk">'+DOW_MON.map(d=>'<div class="c"><span class="n">'+(c.wd[d]||'')+'</span><i style="height:'+(c.wd[d]/maxw*60)+'px"></i>'+DOW[d].slice(0,2)+'</div>').join('')+'</div></div>';
+ }
+ lessons.sort((a,b)=>a.k<b.k?1:-1);
+ html+='<h2>Your “next time” lessons</h2><div class="card">'+(lessons.length?lessons.map(l=>'<div class="lesson"><div class="h">'+esc(fmt(l.k))+' · '+esc(l.h.name)+'</div><div>'+esc(l.text)+'</div></div>').join(''):'<div class="empty">When you log a miss, jot down what you\'ll try next time. Your lessons collect here.</div>')+'</div>';
+ return html;
+}
+
+function vWeek(){
+ const t=todayK(),ws=ui.week,we=addDays(ws,6),thisW=weekStart(t);const sun=dow(t)===0&&ws===thisW;
+ const hs=S.habits.filter(h=>!h.archived||Object.keys(S.logs[h.id]||{}).some(k=>k>=ws&&k<=we));
+ let tot={done:0,partial:0,missed:0},reasons={},lessons=[];
+ for(const h of hs){const c=rangeCounts(h,ws,we);tot.done+=c.done;tot.partial+=c.partial;tot.missed+=c.missed;for(const r in c.reasons)reasons[r]=(reasons[r]||0)+c.reasons[r];lessons=lessons.concat(c.lessons)}
+ lessons.sort((a,b)=>a.k<b.k?-1:1);
+ let html='<header class="top"><div class="eyebrow">'+(sun?'Sunday · weekly review':'Weekly review')+'</div><h1>'+(ws===thisW?'This week':ws===addDays(thisW,-7)?'Last week':'Week of '+esc(fmt(ws,{day:'numeric',month:'short'})))+'</h1><p class="motto">Look back kindly. Keep what worked, adjust one thing.</p></header>';
+ html+='<div class="weeknav"><button data-act="wk" data-v="-7" aria-label="Previous week">‹</button><b>'+esc(fmt(ws,{day:'numeric',month:'short'}))+' – '+esc(fmt(we,{day:'numeric',month:'short'}))+'</b><button data-act="wk" data-v="7" aria-label="Next week"'+(ws>=thisW?' disabled style="opacity:.3"':'')+'>›</button></div>';
+ if(sun)html+='<div class="banner"><span class="ico">☀️</span><span><b>It\'s Sunday.</b><span class="small">A good moment to notice the pattern, not the score.</span></span></div>';
+ html+='<div class="card"><div class="stats" style="margin-top:0"><div class="stat d"><b>'+tot.done+'</b><span>Done</span></div><div class="stat p"><b>'+tot.partial+'</b><span>Partial</span></div><div class="stat m"><b>'+tot.missed+'</b><span>Missed</span></div></div>';
+ for(const h of hs){
+  const cb=comebacks(h);
+  html+='<div style="margin-top:16px"><div class="small" style="font-weight:650">'+esc(h.name)+(h.sched.type==='times'?' <span class="muted">· '+wkTxt(weekCredit(h,ws),h.sched.n)+'</span>':'')+'</div><div class="grid7">';
+  for(let i=0;i<7;i++){const k=addDays(ws,i);const e=getLog(h,k);const sch=isSched(h,k);
+   const cls=e?e.s:(k>t?'off':sch?'open':'off');html+='<div><div class="cell '+cls+(cb.days[k]?' cb':'')+'" title="'+esc(fmt(k))+'"></div>'+DOW[dow(k)].slice(0,1)+'</div>'}
+  html+='</div></div>';
+ }
+ html+='<p class="small muted" style="margin-top:12px">Gold ring = comeback day after a miss. Dashed = planned, not logged yet.</p></div>';
+ html+='<h2>What got in the way</h2><div class="card">'+bars(reasons,4)+'</div>';
+ html+='<h2>Lessons this week</h2><div class="card">'+(lessons.length?lessons.map(l=>'<div class="lesson"><div class="h">'+esc(fmt(l.k))+' · '+esc(l.h.name)+'</div><div>'+esc(l.text)+'</div></div>').join(''):'<div class="empty">No “next time” notes this week.</div>')+'</div>';
+ html+='<h2>Reflection</h2><div class="card"><textarea id="refl" rows="5" data-week="'+ws+'" placeholder="What did this week teach you? What\'s one small adjustment for next week?">'+esc(S.reviews[ws]||'')+'</textarea><div class="saved" id="savedNote"></div></div>';
+ return html;
+}
+
+function vHabits(){
+ let html='<header class="top"><div class="eyebrow">Habits</div><h1>Your habits</h1><p class="motto">Edit, add or rest a habit. Archived habits keep their history.</p></header>';
+ const a=S.habits.filter(h=>!h.archived),z=S.habits.filter(h=>h.archived);
+ const row=h=>'<div class="hrow"><div style="min-width:0"><div class="name">'+esc(h.name)+'</div><div class="small muted">'+esc(schedLabel(h))+'</div></div><button class="btn" data-act="edit" data-h="'+h.id+'">Edit</button></div>';
+ html+='<div class="card">'+(a.length?a.map(row).join(''):'<div class="empty">No active habits.</div>')+'<button class="btn primary block" data-act="newHabit">+ Add a habit</button></div>';
+ if(z.length)html+='<h2>Archived</h2><div class="card">'+z.map(h=>'<div class="hrow"><div><div class="name">'+esc(h.name)+'</div><div class="small muted">'+esc(schedLabel(h))+'</div></div><button class="btn" data-act="unarchive" data-h="'+h.id+'">Restore</button></div>').join('')+'</div>';
+ html+='<h2>Your data</h2><div class="card"><p class="small muted" style="margin-top:0">Everything is stored only in this browser on this phone. Export a backup now and then, especially before changing phones.</p><button class="btn block" data-act="export">Export backup (JSON)</button><button class="btn block" data-act="copy">Copy backup to clipboard</button><button class="btn block" data-act="import">Import backup…</button><button class="btn danger block" data-act="reset">Reset everything…</button></div>';
+ html+='<p class="foot">Comeback · a habit tracker that learns from misses<br>No accounts, no tracking, works offline.</p>';
+ return html;
+}
+
+/* ---------- sheets ---------- */
+function openSheet(html,onMount){
+ closeSheet();
+ const s=document.createElement('div');s.className='scrim';s.id='scrim';
+ s.innerHTML='<div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div>'+html+'</div>';
+ s.addEventListener('click',e=>{if(e.target===s)closeSheet()});
+ document.body.appendChild(s);document.body.style.overflow='hidden';
+ if(onMount)onMount(s);
+}
+function closeSheet(){const s=document.getElementById('scrim');if(s)s.remove();document.body.style.overflow=''}
+
+let draft=null;
+function reflectSheet(h,k){
+ const e=getLog(h,k)||{};
+ draft={h:h.id,k,reasons:(e.reasons||[]).slice()};
+ openSheet('<h2>What got in the way?</h2><p class="muted small">Optional. '+esc(e.s==='partial'?'Partial still counts.':'A miss is data, not a verdict.')+' '+esc(h.name)+' · '+esc(fmt(k))+'</p>'+
+  '<div class="chips" id="chips">'+REASONS.map(r=>'<button class="chip'+(draft.reasons.indexOf(r)>=0?' on':'')+'" data-act="chip" data-v="'+esc(r)+'" aria-pressed="'+(draft.reasons.indexOf(r)>=0)+'">'+esc(r)+'</button>').join('')+'</div>'+
+  '<label class="f" for="note">A note for yourself</label><textarea id="note" rows="2" placeholder="What happened? (optional)">'+esc(e.note||'')+'</textarea>'+
+  '<label class="f" for="next">What will I try next time?</label><input type="text" id="next" placeholder="e.g. lay out gym kit the night before" value="'+esc(e.next||'')+'">'+
+  '<div class="two"><button class="btn ghost" data-act="skip">Skip</button><button class="btn sage" data-act="saveReflect">Save</button></div>');
+}
+function editSheet(h){
+ const isNew=!h;h=h||{id:null,name:'',sched:{type:'days',days:[1,2,3,4,5]}};
+ draft={id:h.id,sched:JSON.parse(JSON.stringify(h.sched))};
+ if(draft.sched.type==='days')draft.n=3;else{draft.n=draft.sched.n;draft.sched.days=[1,3,5]}
+ openSheet('<h2>'+(isNew?'New habit':'Edit habit')+'</h2><label class="f" for="hname">Name</label><input type="text" id="hname" maxlength="80" value="'+esc(h.name)+'" placeholder="e.g. 10-minute walk after lunch"><label class="f">Schedule</label><div id="schedBox"></div>'+
+  '<div class="two"><button class="btn ghost" data-act="close">Cancel</button><button class="btn primary" data-act="saveHabit">Save</button></div>'+(isNew?'':'<button class="btn danger block" data-act="archive" data-h="'+h.id+'">Archive habit</button><p class="small muted">Archiving hides it from Today but keeps its history. You can restore it anytime.</p>'),()=>{renderSched()});
+}
+function renderSched(){
+ const b=document.getElementById('schedBox');if(!b)return;const t=draft.sched.type;
+ b.innerHTML='<div class="toggle"><button class="'+(t==='days'?'on':'')+'" data-act="stype" data-v="days">Specific days</button><button class="'+(t==='times'?'on':'')+'" data-act="stype" data-v="times">Times per week</button></div>'+
+  (t==='days'?'<div class="wd">'+DOW_MON.map(d=>'<button class="'+(draft.sched.days.indexOf(d)>=0?'on':'')+'" data-act="wday" data-v="'+d+'" aria-pressed="'+(draft.sched.days.indexOf(d)>=0)+'">'+DOW[d].slice(0,2)+'</button>').join('')+'</div>'
+  :'<div class="stepper"><button data-act="n" data-v="-1" aria-label="Fewer">−</button><b>'+draft.n+'</b><span class="muted">times a week, any days</span><button data-act="n" data-v="1" aria-label="More">+</button></div>');
+}
+function resetSheet(){
+ openSheet('<h2>Reset everything?</h2><p class="muted">This erases all habits, logs, lessons and reflections on this phone and starts fresh with your three starter habits. It can\'t be undone, so export a backup first if you might want it.</p><button class="btn block" data-act="export">Export backup first</button><button class="btn danger block" data-act="confirmReset">Yes, erase and start fresh</button><button class="btn ghost block" data-act="close">Keep my data</button>');
+}
+
+/* ---------- logging ---------- */
+function setLog(h,k,s){
+ const L=logsOf(h);const prev=L[k];
+ if(prev&&prev.s===s){delete L[k];save();render();toast('Cleared');return}
+ const wasCb=isComebackDay(h,k);
+ L[k]=Object.assign({},prev||{},{s,t:Date.now()});
+ if(s==='done'){delete L[k].reasons;delete L[k].note;delete L[k].next}
+ save();render();
+ const card=document.getElementById('c-'+h.id);if(card&&s!=='missed'){card.classList.remove('pulse');void card.offsetWidth;card.classList.add('pulse')}
+ if(wasCb&&s!=='missed'){const n=comebacks(h).made;toast('↺ Comeback made. That\'s '+n+' so far.',true)}
+ else if(s==='done')toast('Nice. Logged.');
+ if(s!=='done')reflectSheet(h,k);
+}
+
+/* ---------- events ---------- */
+const byId=id=>S.habits.find(h=>h.id===id);
+document.addEventListener('click',e=>{
+ const b=e.target.closest('[data-act]');if(!b)return;const a=b.dataset.act;const h=b.dataset.h?byId(b.dataset.h):null;
+ switch(a){
+  case 'tab':ui.tab=b.dataset.v;if(ui.tab==='week')ui.week=weekStart(todayK());render();window.scrollTo(0,0);break;
+  case 'date':ui.date=b.dataset.v;render();break;
+  case 'log':setLog(h,ui.date,b.dataset.s);break;
+  case 'logAnyway':{const k=ui.date;const sch=h.sched;openSheet('<h2>'+esc(h.name)+'</h2><p class="muted small">Not on the plan for '+esc(fmt(k))+', but a bonus counts too.</p><div class="acts">'+['done','partial','missed'].map(s=>'<button class="act'+(getLog(h,k)&&getLog(h,k).s===s?' on':'')+'" data-act="log2" data-h="'+h.id+'" data-s="'+s+'"><span class="dot"></span>'+s[0].toUpperCase()+s.slice(1)+'</button>').join('')+'</div><button class="btn ghost block" data-act="close">Close</button>');break}
+  case 'log2':closeSheet();setLog(h,ui.date,b.dataset.s);break;
+  case 'reflect':reflectSheet(h,ui.date);break;
+  case 'chip':{const v=b.dataset.v;const i=draft.reasons.indexOf(v);if(i>=0)draft.reasons.splice(i,1);else draft.reasons.push(v);b.classList.toggle('on');b.setAttribute('aria-pressed',i<0);break}
+  case 'skip':closeSheet();toast('Logged. A miss is data, not a verdict.');break;
+  case 'saveReflect':{const hh=byId(draft.h);const L=logsOf(hh);const en=L[draft.k];if(en){en.reasons=draft.reasons;en.note=document.getElementById('note').value.trim();en.next=document.getElementById('next').value.trim();if(!en.note)delete en.note;if(!en.next)delete en.next;save()}closeSheet();render();toast(en&&en.next?'Lesson saved. Future you says thanks.':'Saved.');break}
+  case 'close':closeSheet();break;
+  case 'insight':ui.insight=b.dataset.v;render();break;
+  case 'wk':{const n=Number(b.dataset.v);const nw=addDays(ui.week,n);if(nw<=weekStart(todayK())){ui.week=nw;render()}break}
+  case 'newHabit':editSheet(null);break;
+  case 'edit':editSheet(h);break;
+  case 'stype':draft.sched.type=b.dataset.v;renderSched();break;
+  case 'wday':{const d=Number(b.dataset.v);const i=draft.sched.days.indexOf(d);if(i>=0)draft.sched.days.splice(i,1);else draft.sched.days.push(d);renderSched();break}
+  case 'n':draft.n=Math.max(1,Math.min(7,draft.n+Number(b.dataset.v)));renderSched();break;
+  case 'saveHabit':{
+   const name=document.getElementById('hname').value.trim();if(!name){toast('Give it a short name');break}
+   let sched;if(draft.sched.type==='days'){if(!draft.sched.days.length){toast('Pick at least one day');break}sched={type:'days',days:draft.sched.days.slice().sort()}}else sched={type:'times',n:draft.n};
+   if(draft.id){const x=byId(draft.id);x.name=name;x.sched=sched}else S.habits.push({id:uid(),name,sched,archived:false,created:todayK()});
+   save();closeSheet();render();toast('Saved');break}
+  case 'archive':h.archived=true;save();closeSheet();render();toast('Archived. History kept.');break;
+  case 'unarchive':h.archived=false;save();render();toast('Restored');break;
+  case 'export':{
+   const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);
+   const l=document.createElement('a');l.href=url;l.download='comeback-backup-'+todayK()+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(url),4000);toast('Backup exported');break}
+  case 'copy':{const txt=JSON.stringify(S);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>toast('Backup copied'),()=>toast('Copy not allowed here; use Export'));else toast('Copy not available; use Export');break}
+  case 'import':document.getElementById('importFile').click();break;
+  case 'reset':resetSheet();break;
+  case 'confirmReset':S=seed();save();closeSheet();ui.date=todayK();ui.tab='today';render();toast('Fresh start');break;
+ }
+});
+document.getElementById('importFile').addEventListener('change',ev=>{
+ const f=ev.target.files[0];ev.target.value='';if(!f)return;
+ const r=new FileReader();
+ r.onload=()=>{let d;try{d=JSON.parse(r.result)}catch(x){toast('That file isn\'t valid JSON');return}
+  if(!valid(d)){toast('That doesn\'t look like a Comeback backup');return}
+  if(!confirm('Replace the data on this phone with this backup ('+d.habits.length+' habits)?'))return;
+  if(!d.reviews)d.reviews={};S=d;save();render();toast('Backup restored')};
+ r.readAsText(f);
+});
+let reflT;
+document.addEventListener('input',e=>{
+ if(e.target.id==='refl'){const w=e.target.dataset.week;const v=e.target.value;if(v.trim())S.reviews[w]=v;else delete S.reviews[w];
+  clearTimeout(reflT);reflT=setTimeout(()=>{save();const n=document.getElementById('savedNote');if(n)n.textContent='Saved on this phone';renderTabs()},400)}
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+// keep "today" fresh if the app is left open overnight
+let lastDay=todayK();
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&todayK()!==lastDay){if(ui.date===lastDay)ui.date=todayK();lastDay=todayK();render()}});
+
+render();
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(navigator.storage&&navigator.storage.persist&&location.protocol==='https:')navigator.storage.persist().catch(()=>{});
+// test hook (no-op for normal use)
+window.__comeback={get state(){return S},todayK};
+})();
+</script>
+</body>
+</html>
