@@ -51,6 +51,7 @@ p{margin:6px 0}
 .banner b{display:block}
 .habit .row{display:flex;align-items:center;gap:12px}
 .habit .name{font-weight:650;font-size:16.5px;line-height:1.25}
+.nb{background:none;border:none;padding:0;text-align:left;display:block;width:100%}
 .habit .meta{font-size:13px;color:var(--muted);margin-top:2px}
 .ring{flex:0 0 52px;width:52px;height:52px;position:relative}
 .ring svg{width:52px;height:52px;transform:rotate(-90deg)}
@@ -142,6 +143,7 @@ textarea:focus,input[type=text]:focus{border-color:var(--sage)}
 .toast.gold{background:#8a5d10}
 .pulse{animation:pulse .6s}
 @keyframes pulse{0%{transform:scale(1)}40%{transform:scale(1.03)}100%{transform:scale(1)}}
+.first{padding:28px 2px 0}.first .logo{width:64px;height:64px;margin-bottom:14px}.first .logo svg{width:64px;height:64px;display:block}.first .lead{font-size:20px;font-weight:650;color:var(--sage);margin:4px 0 8px}.chip.sug{background:var(--sage2);border-color:transparent;color:#2c5c50}
 .foot{font-size:12.5px;color:var(--muted);text-align:center;margin:26px 0 6px}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -172,19 +174,41 @@ const minK=(a,b)=>a<b?a:b, maxK=(a,b)=>a>b?a:b;
 
 /* ---------- state ---------- */
 function uid(){return 'h'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-3)}
-function seed(){
- const t=todayK();
- return {v:1,created:t,habits:[
-  {id:uid(),name:'F45 7am (Mon/Wed/Fri)',sched:{type:'days',days:[1,3,5]},archived:false,created:t},
-  {id:uid(),name:'Clean eating (lean protein, low carb, no snacking)',sched:{type:'times',n:5},archived:false,created:t},
-  {id:uid(),name:'Reply to GOGGINS daily quote',sched:{type:'days',days:[0,1,2,3,4,5,6]},archived:false,created:t}
- ],logs:{},reviews:{}};
-}
+// A fresh install starts empty. Presets are opt-in via ?preset=<name> and only apply when there are no habits yet.
+const SUGGESTIONS=[
+ {name:'Exercise',sched:{type:'times',n:3}},
+ {name:'Sleep by 11pm',sched:{type:'days',days:[0,1,2,3,4,5,6]}},
+ {name:'Walk 8,000 steps',sched:{type:'days',days:[0,1,2,3,4,5,6]}},
+ {name:'No snacking after dinner',sched:{type:'days',days:[0,1,2,3,4,5,6]}},
+ {name:'10 min reading',sched:{type:'days',days:[0,1,2,3,4,5,6]}},
+ {name:'Drink 2L water',sched:{type:'days',days:[0,1,2,3,4,5,6]}},
+ {name:'Meditate 5 min',sched:{type:'days',days:[0,1,2,3,4,5,6]}}
+];
+const sugLabel=g=>g.name+(g.sched.type==='times'?' '+g.sched.n+'×/week':'');
+const PRESETS={melvyn:[
+ {name:'F45 7am (Mon/Wed/Fri)',sched:{type:'days',days:[1,3,5]}},
+ {name:'Clean eating (lean protein, low carb, no snacking)',sched:{type:'times',n:5}},
+ {name:'Reply to GOGGINS daily quote',sched:{type:'days',days:[0,1,2,3,4,5,6]}}
+]};
+function blank(){return {v:1,created:todayK(),habits:[],logs:{},reviews:{}}}
+function mkHabit(g){return {id:uid(),name:g.name,sched:JSON.parse(JSON.stringify(g.sched)),archived:false,created:todayK()}}
 function valid(d){return d&&typeof d==='object'&&Array.isArray(d.habits)&&d.logs&&typeof d.logs==='object'}
-let S;
-try{S=JSON.parse(localStorage.getItem(SKEY)||'null')}catch(e){S=null}
-if(!valid(S)){S=seed();save()}
+let S,raw=null;
+try{raw=localStorage.getItem(SKEY)}catch(e){}
+try{S=JSON.parse(raw||'null')}catch(e){S=null}
+if(!valid(S)){
+ // Never silently discard something we can't read: keep a copy of it before starting blank.
+ if(raw){try{localStorage.setItem(SKEY+'.unreadable.'+Date.now(),raw)}catch(e){}}
+ S=blank();save();
+}
 if(!S.reviews)S.reviews={};
+(function applyPreset(){
+ let q=null;try{q=new URLSearchParams(location.search).get('preset')}catch(e){}
+ if(!q)return;
+ const P=PRESETS[q.toLowerCase()];
+ if(P&&S.habits.length===0){S.habits=P.map(mkHabit);save()}
+ try{history.replaceState(null,'',location.pathname+location.hash)}catch(e){}
+})();
 function save(){try{localStorage.setItem(SKEY,JSON.stringify(S))}catch(e){toast('Could not save on this device')}}
 
 const ui={tab:'today',date:todayK(),week:weekStart(todayK()),insight:'all'};
@@ -277,15 +301,26 @@ function vToday(){
  let html='<header class="top"><div class="eyebrow">'+(k===t?'Today · ':'Looking back · ')+esc(fmt(k,{weekday:'long',day:'numeric',month:'long'}))+'</div><h1>'+(k===t?'Show up, gently.':'Fill in '+esc(fmt(k,{weekday:'long'})))+'</h1><p class="motto">'+esc(mottoFor(k))+'</p></header>';
  html+='<div class="days" role="tablist" aria-label="Pick a day (past 7 days)">'+days+'</div>';
  if(dow(t)===0&&k===t)html+='<button class="banner gold" data-act="tab" data-v="week"><span class="ico">🌿</span><span><b>It\'s Sunday: weekly review</b><span class="small muted">Two minutes to look back and pick one small adjustment.</span></span></button>';
- if(!hs.length)html+='<div class="card"><p>No habits yet.</p><button class="btn primary block" data-act="newHabit">Add a habit</button></div>';
+ if(!S.habits.length)return vFirstRun();
+ if(!hs.length)html+='<div class="card"><p>No active habits. Restore one in Habits, or start something new.</p><button class="btn primary block" data-act="newHabit">Add a habit</button>'+sugChips()+'</div>';
  for(const h of sched)html+=habitCard(h,k);
  if(rest.length){
   html+='<h2>Not on the plan today</h2><div class="card rest-list">'+rest.map(h=>{const e=getLog(h,k);
    const why=h.sched.type==='times'?('Weekly target met ('+wkTxt(weekCredit(h,weekStart(k)),h.sched.n)+')'):'Rest day';
    return '<button data-act="logAnyway" data-h="'+h.id+'"><span><span style="color:var(--ink);font-weight:600">'+esc(h.name)+'</span><br>'+why+'</span><span class="link">'+(e?esc(e.s):'Log anyway')+'</span></button>'}).join('')+'</div>';
  }
+ if(hs.length&&hs.length<3&&unusedSug().length)html+='<h2>More ideas</h2><div class="card"><p class="small muted" style="margin-top:0">Tap to add. You can rename or reschedule it anytime by tapping its name.</p>'+sugChips()+'</div>';
  html+='<p class="foot">Your data stays on this phone only.</p>';
  return html;
+}
+function unusedSug(){const have=S.habits.map(h=>h.name.toLowerCase());return SUGGESTIONS.filter(g=>have.indexOf(g.name.toLowerCase())<0)}
+function sugChips(){return '<div class="chips">'+unusedSug().map(g=>'<button class="chip sug" data-act="addSug" data-v="'+esc(g.name)+'">+ '+esc(sugLabel(g))+'</button>').join('')+'</div>'}
+function vFirstRun(){
+ return '<div class="first"><div class="logo" aria-hidden="true"><svg viewBox="0 0 64 64"><rect width="64" height="64" rx="16" fill="#3f7d6e"/><path d="M42.5 20.5A15 15 0 1 1 26 18.4" fill="none" stroke="#fff" stroke-width="5.5" stroke-linecap="round"/><path d="M34 12l9 8.5-11.5 3.5z" fill="#fff"/><circle cx="32" cy="32" r="3.6" fill="#f2c46d"/></svg></div>'+
+ '<h1>Welcome to Comeback</h1><p class="lead">A miss is data, not a verdict.</p><p class="muted">Log done, partial or missed. When you miss, note what got in the way, and the next day becomes your comeback day.</p>'+
+ '<button class="btn primary block" data-act="newHabit">Add your first habit</button>'+
+ '<h2 style="margin-top:26px">Or start with one of these</h2><p class="small muted" style="margin:0 2px">One tap adds it. You can edit it afterwards.</p>'+sugChips()+
+ '<p class="foot">Your data stays on this phone only. No accounts, no tracking.</p></div>';
 }
 function habitCard(h,k){
  const e=getLog(h,k);const r=rate30(h);const cb=isComebackDay(h,k);
@@ -301,7 +336,7 @@ function habitCard(h,k){
    why='<button class="why" data-act="reflect" data-h="'+h.id+'">'+(e.reasons&&e.reasons.length?'<div><span class="k">In the way</span> '+esc(e.reasons.join(', '))+'</div>':'')+(e.note?'<div class="muted">'+esc(e.note)+'</div>':'')+(e.next?'<div><span class="k">Next time</span> '+esc(e.next)+'</div>':'')+'</button>';
   }else why='<button class="link" data-act="reflect" data-h="'+h.id+'">+ Add what got in the way</button>';
  }
- return '<div class="card habit" id="c-'+h.id+'"><div class="row">'+ring(r)+'<div style="flex:1;min-width:0"><div class="name">'+esc(h.name)+'</div><div class="meta">'+esc(meta)+' · 30-day rate</div>'+badge+'</div></div><div class="acts">'+btn('done','Done')+btn('partial','Partial')+btn('missed','Missed')+'</div>'+why+'</div>';
+ return '<div class="card habit" id="c-'+h.id+'"><div class="row">'+ring(r)+'<div style="flex:1;min-width:0"><button class="name nb" data-act="edit" data-h="'+h.id+'" aria-label="Edit '+esc(h.name)+'">'+esc(h.name)+'</button><div class="meta">'+esc(meta)+' · 30-day rate</div>'+badge+'</div></div><div class="acts">'+btn('done','Done')+btn('partial','Partial')+btn('missed','Missed')+'</div>'+why+'</div>';
 }
 
 function rangeCounts(h,from,to){
@@ -365,7 +400,7 @@ function vHabits(){
  let html='<header class="top"><div class="eyebrow">Habits</div><h1>Your habits</h1><p class="motto">Edit, add or rest a habit. Archived habits keep their history.</p></header>';
  const a=S.habits.filter(h=>!h.archived),z=S.habits.filter(h=>h.archived);
  const row=h=>'<div class="hrow"><div style="min-width:0"><div class="name">'+esc(h.name)+'</div><div class="small muted">'+esc(schedLabel(h))+'</div></div><button class="btn" data-act="edit" data-h="'+h.id+'">Edit</button></div>';
- html+='<div class="card">'+(a.length?a.map(row).join(''):'<div class="empty">No active habits.</div>')+'<button class="btn primary block" data-act="newHabit">+ Add a habit</button></div>';
+ html+='<div class="card">'+(a.length?a.map(row).join(''):'<div class="empty">No active habits.</div>')+'<button class="btn primary block" data-act="newHabit">+ Add a habit</button>'+(unusedSug().length?'<p class="small muted" style="margin:14px 0 0">Ideas</p>'+sugChips():'')+'</div>';
  if(z.length)html+='<h2>Archived</h2><div class="card">'+z.map(h=>'<div class="hrow"><div><div class="name">'+esc(h.name)+'</div><div class="small muted">'+esc(schedLabel(h))+'</div></div><button class="btn" data-act="unarchive" data-h="'+h.id+'">Restore</button></div>').join('')+'</div>';
  html+='<h2>Your data</h2><div class="card"><p class="small muted" style="margin-top:0">Everything is stored only in this browser on this phone. Export a backup now and then, especially before changing phones.</p><button class="btn block" data-act="export">Export backup (JSON)</button><button class="btn block" data-act="copy">Copy backup to clipboard</button><button class="btn block" data-act="import">Import backup…</button><button class="btn danger block" data-act="reset">Reset everything…</button></div>';
  html+='<p class="foot">Comeback · a habit tracker that learns from misses<br>No accounts, no tracking, works offline.</p>';
@@ -407,7 +442,7 @@ function renderSched(){
   :'<div class="stepper"><button data-act="n" data-v="-1" aria-label="Fewer">−</button><b>'+draft.n+'</b><span class="muted">times a week, any days</span><button data-act="n" data-v="1" aria-label="More">+</button></div>');
 }
 function resetSheet(){
- openSheet('<h2>Reset everything?</h2><p class="muted">This erases all habits, logs, lessons and reflections on this phone and starts fresh with your three starter habits. It can\'t be undone, so export a backup first if you might want it.</p><button class="btn block" data-act="export">Export backup first</button><button class="btn danger block" data-act="confirmReset">Yes, erase and start fresh</button><button class="btn ghost block" data-act="close">Keep my data</button>');
+ openSheet('<h2>Reset everything?</h2><p class="muted">This erases all habits, logs, lessons and reflections on this phone so you can start fresh. It can\'t be undone, so export a backup first if you might want it.</p><button class="btn block" data-act="export">Export backup first</button><button class="btn danger block" data-act="confirmReset">Yes, erase and start fresh</button><button class="btn ghost block" data-act="close">Keep my data</button>');
 }
 
 /* ---------- logging ---------- */
@@ -459,7 +494,8 @@ document.addEventListener('click',e=>{
   case 'copy':{const txt=JSON.stringify(S);if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(txt).then(()=>toast('Backup copied'),()=>toast('Copy not allowed here; use Export'));else toast('Copy not available; use Export');break}
   case 'import':document.getElementById('importFile').click();break;
   case 'reset':resetSheet();break;
-  case 'confirmReset':S=seed();save();closeSheet();ui.date=todayK();ui.tab='today';render();toast('Fresh start');break;
+  case 'addSug':{const g=SUGGESTIONS.find(x=>x.name===b.dataset.v);if(g&&!S.habits.some(h=>h.name.toLowerCase()===g.name.toLowerCase())){S.habits.push(mkHabit(g));save();render();toast('Added “'+g.name+'”. Tap its name to edit.')}break}
+  case 'confirmReset':S=blank();save();closeSheet();ui.date=todayK();ui.tab='today';render();toast('Fresh start');break;
  }
 });
 document.getElementById('importFile').addEventListener('change',ev=>{
@@ -482,7 +518,15 @@ let lastDay=todayK();
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&todayK()!==lastDay){if(ui.date===lastDay)ui.date=todayK();lastDay=todayK();render()}});
 
 render();
-if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('serviceWorker' in navigator&&location.protocol==='https:'){
+ const hadController=!!navigator.serviceWorker.controller;let shown=false;
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{
+  if(!hadController||shown)return;shown=true;
+  const d=document.createElement('button');d.className='toast';d.style.border='none';d.textContent='New version ready. Tap to refresh.';
+  d.addEventListener('click',()=>location.reload());document.body.appendChild(d);
+ });
+ navigator.serviceWorker.register('sw.js').then(r=>{r.update().catch(()=>{});document.addEventListener('visibilitychange',()=>{if(!document.hidden)r.update().catch(()=>{})})}).catch(()=>{});
+}
 if(navigator.storage&&navigator.storage.persist&&location.protocol==='https:')navigator.storage.persist().catch(()=>{});
 // test hook (no-op for normal use)
 window.__comeback={get state(){return S},todayK};
